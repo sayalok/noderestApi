@@ -1,10 +1,17 @@
 // requiring modules
 const express = require('express');
-const morgan = require('morgan');
+const morgan = require('morgan'); // http requset logger
 
 // Intialize module
 const app = express();
 const bodyParser = require('body-parser')
+const mongoose = require('mongoose')
+
+mongoose.connect('',{
+    useNewUrlParser: true
+}).then(res => console.log('connected...'))
+ .catch(err => console.log(err))
+
 
 // requiring custom modules
 const productRoutes = require('./api/routes/products');
@@ -13,12 +20,12 @@ const orderRoutes = require('./api/routes/orders');
 // middleware
 
 app.use(morgan('dev'))
-app.use(bodyParser.urlencoded({extended: false}))
+app.use(bodyParser.urlencoded({extended: true}))
 app.use(bodyParser.json());
 
 app.use((req,res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Headers','Origin, X-Requested-With, Content-Type, Accept, Authorization')
+    //res.header('Access-Control-Allow-Headers','Origin, X-Requested-With, Content-Type, Accept, Authorization')
     if(req.method === 'OPTIONS') {
         req.header('Access-Control-Allow-Methods', 'PUT, POST, PATCH, DELETE, GET')
         return res.status(200).json({})
