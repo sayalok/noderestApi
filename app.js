@@ -7,7 +7,7 @@ const app = express();
 const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
 
-mongoose.connect('',{
+mongoose.connect('mongodb+srv://sayalok:sayalook00@cluster0-bgzjc.mongodb.net/test?retryWrites=true&w=majority',{
     useNewUrlParser: true
 }).then(res => console.log('connected...'))
  .catch(err => console.log(err))
