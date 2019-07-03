@@ -2,6 +2,33 @@ const express = require('express');
 const mongoose = require('mongoose');
 
 const Product = require('../models/product')
+const multer = require('multer')
+const checkAuth = require('../middleware/check-auth')
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, './uploads/')
+    },
+    filename: function (req, file, cb) {
+        cb(null,file.originalname)
+    }
+})
+
+const fileFilter = (req, file, cb) => {
+    if (file.mimetype === 'image/png' || file.mimetype === 'image/jpeg') {
+        cb(null, true)
+    }else{
+        cb(null,false)
+    }
+}
+
+const upload = multer({
+    storage: storage, 
+    limits: {
+        fileSize: 1024 * 1024 * 5
+    },
+    fileFilter: fileFilter
+})
 
 
 const router = express.Router();
@@ -10,7 +37,7 @@ const router = express.Router();
 
 router.get('/',(req, res, next) => {
     Product.find()
-        .select("name price _id") //define which field data to fetch
+        .select("name price _id productImage") //define which field data to fetch
         .exec()
         .then(data => {
             let i = 0;
@@ -23,6 +50,7 @@ router.get('/',(req, res, next) => {
                         Serial: i,
                         name: d.name,
                         price: d.price,
+                        productImage: d.productImage,
                         _id: d._id,
                         request: {
                             Method: "GET",
@@ -38,11 +66,12 @@ router.get('/',(req, res, next) => {
         })
 })
 
-router.post("/",(req, res, next) => {
+router.post("/", checkAuth, upload.single('productImage'), (req, res, next) => {
     const product = new Product({
             _id: new mongoose.Types.ObjectId(),
             name: req.body.name,
-            price: req.body.price
+            price: req.body.price,
+            productImage: req.file.path
         })
     product
         .save()
@@ -53,6 +82,7 @@ router.post("/",(req, res, next) => {
                     name: result.name,
                     price: result.price,
                     _id: result._id,
+                    productImage: result.productImage,
                     request: {
                         Method: "GET",
                         url: "http://localhost:3000/products/"+result._id
@@ -68,7 +98,7 @@ router.post("/",(req, res, next) => {
 router.get('/:productId',(req, res, next) => {
     let pid = req.params.productId
     Product.findById(pid)
-        .select("name price _id")
+        .select("name price _id productImage")
         .exec()
         .then(data => {
             if(data) {
@@ -78,6 +108,7 @@ router.get('/:productId',(req, res, next) => {
                         name: data.name,
                         price: data.price,
                         _id: data._id,
+                        productImage: data.productImage,
                         request: {
                             Method: "GET",
                             url: "http://localhost:3000/products/"+data._id
@@ -93,7 +124,7 @@ router.get('/:productId',(req, res, next) => {
         })
 })
 
-router.patch('/:productId',(req, res, next) => {
+router.patch('/:productId', checkAuth, (req, res, next) => {
     let pid = req.params.productId
     const updatePro = {
         name: req.body.name,
@@ -109,7 +140,7 @@ router.patch('/:productId',(req, res, next) => {
         })
 })
 
-router.delete('/:productId',(req, res, next) => {
+router.delete('/:productId', checkAuth, (req, res, next) => {
     let pid = req.params.productId;
     Product.remove({_id:pid})
             .exec()

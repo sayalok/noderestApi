@@ -2,12 +2,13 @@ const express = require('express');
 const mongoose = require('mongoose')
 
 const router = express.Router();
+const checkAuth = require('../middleware/check-auth')
 
 
 const Order = require('../models/orders')
 const Product = require('../models/product')
 
-router.get('/',(req, res, next) => {
+router.get('/', checkAuth, (req, res, next) => {
     Order.find()
         .exec()
         .then(result => {
@@ -34,7 +35,7 @@ router.get('/',(req, res, next) => {
         })
 })
 
-router.post('/',(req, res, next) => {
+router.post('/', checkAuth, (req, res, next) => {
     Product.findById(req.body.productId)
         .then(product => {  
             const order = new Order({
@@ -54,7 +55,7 @@ router.post('/',(req, res, next) => {
         })
 })
 
-router.get('/:orderId',(req, res, next) => {
+router.get('/:orderId',  checkAuth, (req, res, next) => {
     const oId = req.params.orderId
 //    console.log()
     Order.findById(oId)
@@ -80,7 +81,7 @@ router.get('/:orderId',(req, res, next) => {
         .catch()
 })
 
-router.delete('/:orderId',(req, res, next) => {
+router.delete('/:orderId', checkAuth, (req, res, next) => {
     const oId = req.params.orderId
     Order.remove({_id:oId})
             .exec()
